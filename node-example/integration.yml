@@ -1,0 +1,12 @@
+name: Express JS
+slug: node-express
+spec_version: 1.0.0
+
+# Switch to 'production' when tests pass
+status: development
+
+# Command to publish the documenting library
+publish:
+  - npm run publish
+
+before_test: []

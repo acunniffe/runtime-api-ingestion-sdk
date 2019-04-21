@@ -1,0 +1,17 @@
+{
+  "name": "express-test",
+  "version": "1.0.0",
+  "description": "",
+  "main": "echo-app.js",
+  "scripts": {
+    "start": "node echo-app.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@useoptic/document-express": "0.2.0",
+    "body-parser": "^1.18.3",
+    "express": "^4.16.4",
+    "request": "^2.88.0"
+  }
+}
