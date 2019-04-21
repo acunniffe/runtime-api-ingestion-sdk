@@ -11,7 +11,7 @@ const assertValidEnv = (callback) => {
 	}));
 };
 
-describe('library connects to Optic', () => {
+describe('library connects to Optic:', () => {
 
 	describe('logging service handles request method', () => {
 
