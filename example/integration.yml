@@ -1,6 +1,9 @@
 name: name
 slug: slug
 spec_version: 1.0.0
+
+documentation: Readme.md
+
 # Switch to 'production' when tests pass
 status: development
 
@@ -8,4 +11,4 @@ status: development
 publish:
   - npm run publish
 
-before_test: []
+before_tests: []

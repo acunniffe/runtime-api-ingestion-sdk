@@ -6,13 +6,13 @@ const ncp = require('ncp')
 const fs = require('fs')
 const yaml = require('js-yaml')
 const hostIp = require('ip').address()
-const {spawn} = require('child_process')
+const {spawn, execSync} = require('child_process')
 const waitPort = require('wait-port');
 const colors = require('colors')
 const mocha = require('mocha')
 
-const cwd = process.cwd()
-// const cwd = path.join(process.cwd(), 'node-example')
+// const cwd = process.cwd()
+const cwd = path.join(process.cwd(), 'node-example')
 
 program.version(`contract: ${pJson['spec-version']} | cli ${pJson.version}`)
 
@@ -45,9 +45,17 @@ program.command('testLibrary')
 program.command('testAll')
 .action((cmd) => test({echo: true, library: true}))
 
+program.command('publish')
+.action((cmd) => {
+	const publishCommands = loadConfig().publish || []
+	if (!publishCommands.length) {
+		throw new Error('No publish commands specified.')
+	} else {
+		execArgs(publishCommands, 'Running publish task')
+	}
+})
+
 program.parse(process.argv);
-
-
 
 //Helpers
 function runDocker(port, verbose) {
@@ -69,7 +77,7 @@ function runDocker(port, verbose) {
 				return process.exit()
 			}
 
-			const start = spawn(`docker`, ['run', '-p', `${port}:4000`, `--add-host=testhost:${hostIp}`, containerName], {cwd})
+			const start = spawn(`docker`, ['run', '-p', `${port}:4000`, `--add-host=testhost:${hostIp}`, '-e', 'OPTIC_SERVER_LISTENING=TRUE', '-e', 'OPTIC_SERVER_HOST=testhost', containerName], {cwd})
 			log(`Starting echo server on port ${port}...`, echoServer)
 			start.stdout.on('data', (data) => log(data.toString(), echoServer));
 			start.stderr.on('data', (data) => log(data.toString(), echoServer, true));
@@ -89,7 +97,9 @@ function runDocker(port, verbose) {
 
 function test({echo, library}) {
 
-	logTestAssertion()
+	const before_tests = loadConfig().before_tests || []
+
+	execArgs(before_tests, 'Running before_tests')
 
 	const promise = runDocker(4000, true)
 
@@ -147,7 +157,8 @@ function log(data, from, error) {
 	const color = ({
 		'docker-build': colors.blue,
 		'echo-server': colors.magenta,
-		'test-runner': colors.green
+		'test-runner': colors.green,
+		'helper': colors.grey
 	})[from]
 	if (error) {
 		console.log(`${color(`[${from}]`)} ${color.red(data.trim())}`)
@@ -171,4 +182,19 @@ function cleanUp() {
 	if (mochaProcess) {
 
 	}
+}
+
+function execArgs(input, taskDesc) {
+	let commands = []
+
+	if (Array.isArray(input)) {
+		commands = input
+	} else {
+		commands = [input]
+	}
+
+	console.log(commands)
+
+	log(taskDesc, 'helper')
+	commands.forEach(command => execSync(command, {cwd}))
 }
