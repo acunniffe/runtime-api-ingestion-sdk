@@ -104,26 +104,33 @@ function test({echo, library}) {
 	const promise = runDocker(4000, true)
 
 	promise.then(({port, process}) => {
-		const Mocha = require('mocha')
-		const mocha = new Mocha({});
 
-		if (echo) {
-			mocha.addFile(path.join(__dirname, 'specs', 'shared-echo-server-tests.js'))
+		const {runCLI} = require('jest-cli');
+
+		const config = {
+			projects: [path.join(__dirname, './specs')],
+			runInBand: true,
+			testPathIgnorePatterns: []
+		};
+
+		if (!echo) {
+			config.testPathIgnorePatterns.push('echo-server.spec.js')
 		}
-		if (library) {
-			mocha.addFile(path.join(__dirname, 'specs', 'shared-library-tests.js'))
+
+		if (!library) {
+			config.testPathIgnorePatterns.push('documenting-library.spec.js')
 		}
 
-		const testRunner = 'test-runner'
-
-		log('Running Tests', testRunner)
-
-		let someFailed = false
-
-		mochaProcess = mocha.run((failures) => {
-			process.exitCode = failures ? 1 : 0;
+		runCLI(config, config.projects).then(({results}) => {
 			cleanUp()
+
+			if (results.success) {
+				log(`Your library conforms to the specification. Nice work!`, 'test-runner')
+			} else {
+				log(`Some tests failed. `, 'test-runner', true)
+			}
 		})
+
 	})
 
 	promise.catch(() => {
@@ -192,8 +199,6 @@ function execArgs(input, taskDesc) {
 	} else {
 		commands = [input]
 	}
-
-	console.log(commands)
 
 	log(taskDesc, 'helper')
 	commands.forEach(command => execSync(command, {cwd}))

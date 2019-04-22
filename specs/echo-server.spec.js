@@ -1,4 +1,3 @@
-const assert = require('assert');
 const request = require('request');
 const session = require('./optic-session');
 const {simpleJson, longJson} = require('./test-bodies');
@@ -26,11 +25,10 @@ describe('echo server', () => {
 			testUrl('/test/123', 'POST'),
 			testUrl('/any/12/route', 'POST'),
 		]).then((arr) => {
-			assert(arr.every((i) => i));
+			expect(arr.every((i) => i)).toBeTruthy();
 			done();
 		}).catch(() => {
-			assert(false);
-			done();
+			done.fail(new Error('Requests to one or more paths failed'))
 		});
 
 	}));
@@ -38,8 +36,8 @@ describe('echo server', () => {
 
 	it('returns request headers as response headers', (done) => assertValidEnv((r) => {
 		r.get('/test-endpoint', {headers: {'example-one': 'set', 'example-two': 'set'}}, (err, response) => {
-			assert(response.headers['example-one'] === 'set');
-			assert(response.headers['example-two'] === 'set');
+			expect(response.headers['example-one']).toBe('set')
+			expect(response.headers['example-two']).toBe('set')
 			done();
 		});
 	}));
@@ -47,9 +45,9 @@ describe('echo server', () => {
 	it('returns request body as response body with correct types', (done) => assertValidEnv((r) => {
 		const body = {first: 'one', second: 'two', third: 'third'};
 		r.post('/test-endpoint', {json: body}, (err, response, resBody) => {
-			assert(typeof resBody === 'object');
-			assert(JSON.stringify(body) === JSON.stringify(resBody));
-			assert(response.headers['content-type'].includes('application/json'));
+			expect(typeof resBody).toBe('object')
+			expect(body).toEqual(resBody)
+			expect(response.headers['content-type']).toContain('application/json')
 			done();
 		});
 	}));
@@ -67,10 +65,10 @@ describe('echo server', () => {
 			testStatusCode(412),
 			testStatusCode(311),
 		]).then((arr) => {
-			assert(arr.every((i) => i));
+			expect(arr.every((i) => i)).toBeTruthy();
 			done();
 		}).catch(() => {
-			assert(false);
+			done.fail(new Error('Status codes not pulled from header for one or more'))
 			done();
 		});
 

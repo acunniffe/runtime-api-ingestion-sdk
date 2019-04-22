@@ -1,4 +1,3 @@
-const assert = require('assert');
 const request = require('request');
 const session = require('./optic-session');
 const {simpleJson, longJson} = require('./test-bodies');
@@ -11,14 +10,14 @@ const assertValidEnv = (callback) => {
 	}));
 };
 
-describe('library connects to Optic:', () => {
+describe('documenting library connects to Optic:', () => {
 
 	describe('logging service handles request method', () => {
 
 		const testMethod = (method, done, r) => {
 			session((done1) => r('/test-endpoint', {method: method}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(request.method === method.toUpperCase());
+				expect(request.method).toBe(method.toUpperCase())
 				done();
 			});
 		};
@@ -38,7 +37,7 @@ describe('library connects to Optic:', () => {
 		it('finds no query parameters when none', (done) => assertValidEnv((r) => {
 			session((done1) => r.get('/test-endpoint', {qs: {}}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(Object.entries(request.queryParameters).length === 0);
+				expect(Object.entries(request.queryParameters).length).toBe(0)
 				done();
 			});
 		}));
@@ -46,9 +45,9 @@ describe('library connects to Optic:', () => {
 		it('finds one query parameter', (done) => assertValidEnv((r) => {
 			session((done1) => r.get('/test-endpoint?one=first', {}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(Object.entries(request.queryParameters).length === 1);
-				assert(request.queryParameters.one === 'first');
-				assert(request.url === '/test-endpoint');
+				expect(Object.entries(request.queryParameters).length).toBe(1)
+				expect(request.queryParameters.one).toBe('first')
+				expect(request.url).toBe('/test-endpoint')
 				done();
 			});
 		}));
@@ -56,9 +55,10 @@ describe('library connects to Optic:', () => {
 		it('creates array from duplicate keys', (done) => assertValidEnv((r) => {
 			session((done1) => r.get('/test-endpoint?one=first&one=second', {}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(Object.entries(request.queryParameters).length === 1);
-				assert.deepEqual(request.queryParameters.one, ['first', 'second']);
-				assert(request.url === '/test-endpoint');
+
+				expect(Object.entries(request.queryParameters).length).toBe(1)
+				expect(request.queryParameters.one).toEqual(['first', 'second'])
+				expect(request.url).toBe('/test-endpoint')
 				done();
 			});
 		}));
@@ -69,8 +69,7 @@ describe('library connects to Optic:', () => {
 		it('finds application headers when set', (done) => assertValidEnv((r) => {
 			session((done1) => r.get('/test-endpoint', {headers: {'MyApp': 'Header'}}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(request.headers.myapp === 'Header');
-				assert(response.headers.myapp === 'Header');
+				expect(request.headers.myapp).toBe('Header');
 				done();
 			});
 		}));
@@ -80,7 +79,7 @@ describe('library connects to Optic:', () => {
 		it('empty when not set', (done) => assertValidEnv((r) => {
 			session((done1) => r.post('/test-endpoint', {}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(Object.entries(request.body).length === 0);
+				expect(Object.entries(request.body).length).toBe(0)
 				done();
 			});
 		}));
@@ -91,7 +90,7 @@ describe('library connects to Optic:', () => {
 				headers: {'Content-Type': 'application/json'}
 			}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert.deepEqual(request.body, simpleJson);
+				expect(request.body).toEqual(simpleJson)
 				done();
 			});
 		}));
@@ -102,7 +101,7 @@ describe('library connects to Optic:', () => {
 				headers: {'Content-Type': 'application/json'}
 			}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert.deepEqual(request.body, longJson);
+				expect(request.body).toEqual(longJson)
 				done();
 			});
 		}));
@@ -114,7 +113,7 @@ describe('library connects to Optic:', () => {
 				headers: {'content-type': 'text/plain'}
 			}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert.deepEqual(request.body, text);
+				expect(request.body).toEqual(text)
 				done();
 			});
 		}));
@@ -142,9 +141,9 @@ describe('library connects to Optic:', () => {
 				Promise.all(promises).then(done1);
 			}, (samples) => {
 				const set = new Set(samples.map(i => i.response.statusCode));
-				assert(set.has('200'));
-				assert(set.has('401'));
-				assert(set.has('404'));
+				expect(set.has('200')).toBeTruthy();
+				expect(set.has('401')).toBeTruthy()
+				expect(set.has('404')).toBeTruthy()
 				done();
 			});
 		}));
@@ -155,7 +154,7 @@ describe('library connects to Optic:', () => {
 		it('empty when not set', (done) => assertValidEnv((r) => {
 			session((done1) => r.post('/test-endpoint', {}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert(Object.entries(response.body).length === 0);
+				expect(Object.entries(response.body).length).toBe(0);
 				done();
 			});
 		}));
@@ -163,7 +162,7 @@ describe('library connects to Optic:', () => {
 		it('works when short json', (done) => assertValidEnv((r) => {
 			session((done1) => r.post('/test-endpoint', {json: simpleJson}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert.deepEqual(response.body, simpleJson);
+				expect(request.body).toEqual(simpleJson);
 				done();
 			});
 		}));
@@ -171,12 +170,10 @@ describe('library connects to Optic:', () => {
 		it('works when long json', (done) => assertValidEnv((r) => {
 			session((done1) => r.post('/test-endpoint', {json: longJson}, done1), (samples) => {
 				const {request, response} = samples[0];
-				assert.deepEqual(response.body, longJson);
+				expect(request.body).toEqual(longJson);
 				done();
 			});
 		}));
 
 	});
-
-
 });
